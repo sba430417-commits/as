@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.passvault.data.Account
 import com.example.passvault.databinding.ItemAccountBinding
+import com.example.passvault.util.decryptedForUi
 
 class AccountAdapter(
     private val onClick: (Account) -> Unit
@@ -20,7 +21,7 @@ class AccountAdapter(
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val item = getItem(position)
+        val item = getItem(position).decryptedForUi()
         holder.binding.tvSiteName.text = item.siteName
         holder.binding.tvSubtitle.text = item.username ?: item.email ?: ""
         holder.binding.tvBadge.text = if (item.source == "imported_csv") "مستورد" else "يدوي"

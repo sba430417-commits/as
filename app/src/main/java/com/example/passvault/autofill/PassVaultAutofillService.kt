@@ -16,6 +16,8 @@ import com.example.passvault.R
 import com.example.passvault.data.Account
 import com.example.passvault.data.AppDatabase
 import com.example.passvault.util.CryptoManager
+import com.example.passvault.util.decryptedForUi
+import com.example.passvault.util.encryptedForStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +47,8 @@ class PassVaultAutofillService : AutofillService() {
         CoroutineScope(Dispatchers.IO).launch {
             val accounts = AppDatabase.getInstance(applicationContext).accountDao().getAllNow()
             val response = FillResponse.Builder()
-            accounts.take(20).forEach { account ->
+            accounts.take(20).forEach { storedAccount ->
+                val account = storedAccount.decryptedForUi()
                 val presentation = RemoteViews(packageName, android.R.layout.simple_list_item_1).apply {
                     setTextViewText(android.R.id.text1, account.siteName)
                 }
@@ -90,7 +93,7 @@ class PassVaultAutofillService : AutofillService() {
                     phone = null,
                     source = "autofill",
                     category = "عام"
-                )
+                ).encryptedForStorage()
             )
             callback.onSuccess()
         }

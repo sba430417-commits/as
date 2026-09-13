@@ -1,20 +1,47 @@
 package com.example.passvault.ui
 
+import android.app.DownloadManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import com.example.passvault.databinding.ActivityAuthBinding
 import com.example.passvault.util.AuthSession
+import com.example.passvault.util.UpdateManager
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 /** شاشة الدخول: بصمة أولاً، ثم رمز قفل الجهاز. */
 class AuthActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAuthBinding
     private var deviceCredentialStarted = false
+    private var updateDialog: AlertDialog? = null
+    private val downloadReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+            if (id != UpdateManager.savedDownloadId(context)) return
+            val manager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val uri = manager.getUriForDownloadedFile(id)
+            if (uri == null) {
+                Toast.makeText(context, "تعذر تنزيل التحديث", Toast.LENGTH_LONG).show()
+                return
+            }
+            UpdateManager.clearSavedDownload(context)
+            startActivity(Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            })
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +49,37 @@ class AuthActivity : AppCompatActivity() {
         setContentView(binding.root)
         AuthSession.isUnlocked = false
         binding.btnLogin.setOnClickListener { startAuthentication() }
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), RECEIVER_NOT_EXPORTED)
+        else registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        checkForRequiredUpdate()
+    }
+
+    private fun checkForRequiredUpdate() {
+        binding.btnLogin.isEnabled = false
+        lifecycleScope.launch {
+            val release = UpdateManager.latestRelease()
+            binding.btnLogin.isEnabled = true
+            if (release != null && UpdateManager.isNewer(release)) showRequiredUpdate(release)
+        }
+    }
+
+    private fun showRequiredUpdate(release: UpdateManager.Release) {
+        updateDialog = AlertDialog.Builder(this)
+            .setTitle("تحديث مطلوب")
+            .setMessage("يتوفر إصدار أحدث (${release.versionName}). يجب تحديث التطبيق قبل المتابعة.")
+            .setCancelable(false)
+            .setPositiveButton("تنزيل التحديث") { _, _ ->
+                UpdateManager.startDownload(this, release)
+                Toast.makeText(this, "بدأ تنزيل التحديث وسيظهر المثبت بعد اكتماله.", Toast.LENGTH_LONG).show()
+                showRequiredUpdate(release)
+            }.create()
+        updateDialog?.show()
+    }
+
+    override fun onDestroy() {
+        runCatching { unregisterReceiver(downloadReceiver) }
+        updateDialog?.dismiss()
+        super.onDestroy()
     }
 
     private fun startAuthentication() {

@@ -11,6 +11,7 @@ import com.example.passvault.data.Account
 import com.example.passvault.data.AppDatabase
 import com.example.passvault.databinding.ActivityAccountDetailBinding
 import com.example.passvault.util.CryptoManager
+import com.example.passvault.util.decryptedForUi
 import kotlinx.coroutines.launch
 
 class AccountDetailActivity : AppCompatActivity() {
@@ -33,8 +34,8 @@ class AccountDetailActivity : AppCompatActivity() {
             val dao = AppDatabase.getInstance(this@AccountDetailActivity).accountDao()
             val acc = dao.getById(id)
             if (acc == null) { finish(); return@launch }
-            account = acc
-            bind(acc)
+            account = acc.decryptedForUi()
+            bind(account!!)
         }
 
         binding.btnTogglePassword.setOnClickListener { togglePassword() }
@@ -50,7 +51,7 @@ class AccountDetailActivity : AppCompatActivity() {
         binding.tvPhone.text = acc.phone ?: "—"
 
         if (acc.encryptedPassword != null) {
-            plainPassword = CryptoManager.decrypt(acc.encryptedPassword)
+            plainPassword = acc.encryptedPassword
             binding.tvPassword.text = "••••••••"
             binding.btnTogglePassword.isEnabled = true
             binding.btnCopyPassword.isEnabled = true

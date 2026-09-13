@@ -14,7 +14,7 @@ import com.example.passvault.data.Account
 import com.example.passvault.data.AppDatabase
 import com.example.passvault.databinding.ActivityMainBinding
 import com.example.passvault.util.AuthSession
-import com.example.passvault.util.CryptoManager
+import com.example.passvault.util.encryptedForStorage
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlinx.coroutines.Dispatchers
@@ -108,7 +108,7 @@ class MainActivity : AppCompatActivity() {
                         put("siteName", account.siteName)
                         put("displayName", account.displayName ?: "")
                         put("username", account.username ?: "")
-                        put("password", account.encryptedPassword?.let { CryptoManager.decrypt(it) } ?: "")
+                        put("password", account.encryptedPassword ?: "")
                         put("email", account.email ?: "")
                         put("phone", account.phone ?: "")
                         put("category", account.category)
@@ -136,14 +136,14 @@ class MainActivity : AppCompatActivity() {
                         siteName = site,
                         displayName = item.optString("displayName").ifBlank { null },
                         username = item.optString("username").ifBlank { null },
-                        encryptedPassword = item.optString("password").ifBlank { null }?.let { CryptoManager.encrypt(it) },
+                        encryptedPassword = item.optString("password").ifBlank { null },
                         email = item.optString("email").ifBlank { null },
                         phone = item.optString("phone").ifBlank { null },
                         source = "vault_import",
                         category = item.optString("category").ifBlank { "عام" }
                     )
                 }
-                AppDatabase.getInstance(this@MainActivity).accountDao().insertAll(accounts)
+                AppDatabase.getInstance(this@MainActivity).accountDao().insertAll(accounts.map { it.encryptedForStorage() })
                 accounts.size
             }
             Toast.makeText(this@MainActivity, "تمت استعادة $count حساب", Toast.LENGTH_LONG).show()

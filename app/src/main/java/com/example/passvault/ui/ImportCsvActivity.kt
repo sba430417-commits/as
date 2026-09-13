@@ -10,6 +10,7 @@ import com.example.passvault.data.Account
 import com.example.passvault.data.AppDatabase
 import com.example.passvault.databinding.ActivityImportCsvBinding
 import com.example.passvault.util.CryptoManager
+import com.example.passvault.util.encryptedForStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,7 +51,7 @@ class ImportCsvActivity : AppCompatActivity() {
             if (accounts.isEmpty()) {
                 Toast.makeText(this@ImportCsvActivity, "ما لقينا بيانات صالحة في الملف", Toast.LENGTH_LONG).show()
             } else {
-                AppDatabase.getInstance(this@ImportCsvActivity).accountDao().insertAll(accounts)
+                AppDatabase.getInstance(this@ImportCsvActivity).accountDao().insertAll(accounts.map { it.encryptedForStorage() })
                 Toast.makeText(
                     this@ImportCsvActivity,
                     "تم استيراد ${accounts.size} حساب بنجاح",

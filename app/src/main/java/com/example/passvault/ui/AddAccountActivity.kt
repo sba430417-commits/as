@@ -8,6 +8,7 @@ import com.example.passvault.data.Account
 import com.example.passvault.data.AppDatabase
 import com.example.passvault.databinding.ActivityAddAccountBinding
 import com.example.passvault.util.CryptoManager
+import com.example.passvault.util.encryptedForStorage
 import kotlinx.coroutines.launch
 
 class AddAccountActivity : AppCompatActivity() {
@@ -53,7 +54,7 @@ class AddAccountActivity : AppCompatActivity() {
         )
 
         lifecycleScope.launch {
-            AppDatabase.getInstance(this@AddAccountActivity).accountDao().insert(account)
+            AppDatabase.getInstance(this@AddAccountActivity).accountDao().insert(account.encryptedForStorage())
             Toast.makeText(this@AddAccountActivity, "تم الحفظ", Toast.LENGTH_SHORT).show()
             finish()
         }

@@ -7,5 +7,17 @@
         <item name="android:windowBackground">@color/background</item>
         <item name="android:statusBarColor">@color/background</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="materialButtonStyle">@style/AppButton</item>
+        <item name="textInputStyle">@style/AppTextInput</item>
+    </style>
+    <style name="AppButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:minHeight">52dp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="backgroundTint">@color/primary</item>
+        <item name="cornerRadius">14dp</item>
+    </style>
+    <style name="AppTextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/primary</item>
+        <item name="hintTextColor">@color/text_secondary</item>
     </style>
 </resources>
