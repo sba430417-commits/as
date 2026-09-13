@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background"
+    android:padding="24dp">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="رجوع"
+        android:src="@android:drawable/ic_media_previous" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="استيراد من كروم"
+        android:textColor="@color/text_main"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        android:lineSpacingExtra="4dp"
+        android:text="لأسباب أمنية، ما فيه طريقة لأي تطبيق يوصل مباشرة لكلمات المرور المحفوظة في كروم. بس تقدر تصدّرها يدويًا بخطوتين بسيطتين:\n\n١) افتح كروم → الإعدادات → كلمات المرور\n٢) اضغط ⋮ بجانب &quot;كلمات المرور المحفوظة&quot; ثم &quot;تصدير كلمات المرور&quot;\n\nبعدها اختر الملف من هنا وبيتم استيراده تلقائيًا."
+        android:layout_marginBottom="28dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPickFile"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="اختيار ملف CSV"
+        app:cornerRadius="16dp" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="24dp"
+        android:visibility="gone" />
+
+</LinearLayout>
