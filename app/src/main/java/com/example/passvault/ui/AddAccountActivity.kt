@@ -42,9 +42,14 @@ class AddAccountActivity : AppCompatActivity() {
             return
         }
         if (email == null && phone == null) {
-            Toast.makeText(this, "أدخل البريد الإلكتروني أو رقم الجوال على الأقل", Toast.LENGTH_SHORT).show()
+            val error = "أدخل البريد الإلكتروني أو رقم الجوال على الأقل"
+            binding.emailLayout.error = error
+            binding.phoneLayout.error = error
             return
         }
+
+        binding.emailLayout.error = null
+        binding.phoneLayout.error = null
 
         val account = Account(
             siteName = siteName,
