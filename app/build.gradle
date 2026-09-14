@@ -36,6 +36,11 @@ android {
         viewBinding true
         buildConfig true
     }
+
+    // GitHub Actions يمرر GITHUB_SHA تلقائيًا أثناء بناء الـ APK.
+    buildTypes.each {
+        it.buildConfigField 'String', 'BUILD_COMMIT', '"' + (System.getenv('GITHUB_SHA') ?: 'local-build') + '"'
+    }
 }
 
 dependencies {

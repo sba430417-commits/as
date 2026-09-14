@@ -12,6 +12,7 @@ import java.net.URL
 
 object UpdateManager {
     private const val RELEASES_URL = "https://api.github.com/repos/sba430417-commits/as/releases/latest"
+    private const val MAIN_COMMIT_URL = "https://api.github.com/repos/sba430417-commits/as/commits/main"
     private const val PREFS = "app_updates"
     private const val DOWNLOAD_ID = "download_id"
 
@@ -40,6 +41,25 @@ object UpdateManager {
     }
 
     fun isNewer(release: Release): Boolean = compareVersions(release.versionName, BuildConfig.VERSION_NAME) > 0
+
+    suspend fun latestMainCommit(): String? = withContext(Dispatchers.IO) {
+        try {
+            val connection = (URL(MAIN_COMMIT_URL).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 7000
+                readTimeout = 7000
+                setRequestProperty("Accept", "application/vnd.github+json")
+                setRequestProperty("User-Agent", "YourAccount-Android")
+            }
+            if (connection.responseCode !in 200..299) return@withContext null
+            JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+                .optString("sha").ifBlank { null }
+        } catch (_: Exception) { null }
+    }
+
+    fun isCommitOutdated(latestCommit: String?): Boolean =
+        !latestCommit.isNullOrBlank() && BuildConfig.BUILD_COMMIT != "local-build" &&
+            !latestCommit.equals(BuildConfig.BUILD_COMMIT, ignoreCase = true)
 
     private fun compareVersions(left: String, right: String): Int {
         val a = left.split('.').map { it.toIntOrNull() ?: 0 }

@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -58,9 +59,26 @@ class AuthActivity : AppCompatActivity() {
         binding.btnLogin.isEnabled = false
         lifecycleScope.launch {
             val release = UpdateManager.latestRelease()
+            val latestCommit = UpdateManager.latestMainCommit()
             binding.btnLogin.isEnabled = true
-            if (release != null && UpdateManager.isNewer(release)) showRequiredUpdate(release)
+            val needsUpdate = (release != null && UpdateManager.isNewer(release)) ||
+                UpdateManager.isCommitOutdated(latestCommit)
+            if (needsUpdate) {
+                if (release != null) showRequiredUpdate(release)
+                else showReleaseRequiredMessage()
+            }
         }
+    }
+
+    private fun showReleaseRequiredMessage() {
+        AlertDialog.Builder(this)
+            .setTitle("تحديث مطلوب")
+            .setMessage("تم العثور على نسخة أحدث من التطبيق، لكن لم يتم نشر ملف APK داخل GitHub Release بعد. يجب نشر ملف APK ثم تحديث التطبيق قبل المتابعة.")
+            .setCancelable(false)
+            .setPositiveButton("فتح GitHub") { _, _ ->
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/sba430417-commits/as/releases")))
+            }
+            .show()
     }
 
     private fun showRequiredUpdate(release: UpdateManager.Release) {
