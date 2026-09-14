@@ -61,10 +61,11 @@ class AuthActivity : AppCompatActivity() {
             val release = UpdateManager.latestRelease()
             val latestCommit = UpdateManager.latestMainCommit()
             binding.btnLogin.isEnabled = true
-            val needsUpdate = (release != null && UpdateManager.isNewer(release)) ||
-                UpdateManager.isCommitOutdated(latestCommit)
+            val commitIsNew = UpdateManager.isCommitOutdated(latestCommit)
+            val releaseIsNew = release != null && UpdateManager.isNewer(release)
+            val needsUpdate = releaseIsNew || commitIsNew
             if (needsUpdate) {
-                if (release != null) showRequiredUpdate(release)
+                if (release != null && (releaseIsNew || UpdateManager.releaseContainsCommit(release, latestCommit))) showRequiredUpdate(release)
                 else showReleaseRequiredMessage()
             }
         }

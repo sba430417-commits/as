@@ -16,7 +16,7 @@ object UpdateManager {
     private const val PREFS = "app_updates"
     private const val DOWNLOAD_ID = "download_id"
 
-    data class Release(val versionName: String, val apkUrl: String, val notes: String)
+    data class Release(val versionName: String, val apkUrl: String, val notes: String, val publishedCommit: String?)
 
     suspend fun latestRelease(): Release? = withContext(Dispatchers.IO) {
         try {
@@ -36,7 +36,9 @@ object UpdateManager {
                 .map { assets.getJSONObject(it) }
                 .firstOrNull { it.optString("name").lowercase().endsWith(".apk") }
                 ?: return@withContext null
-            Release(tag, asset.optString("browser_download_url"), root.optString("body"))
+            val notes = root.optString("body")
+            val publishedCommit = Regex("[0-9a-fA-F]{40}").find(notes)?.value
+            Release(tag, asset.optString("browser_download_url"), notes, publishedCommit)
         } catch (_: Exception) { null }
     }
 
@@ -60,6 +62,9 @@ object UpdateManager {
     fun isCommitOutdated(latestCommit: String?): Boolean =
         !latestCommit.isNullOrBlank() && BuildConfig.BUILD_COMMIT != "local-build" &&
             !latestCommit.equals(BuildConfig.BUILD_COMMIT, ignoreCase = true)
+
+    fun releaseContainsCommit(release: Release?, commit: String?): Boolean =
+        release != null && !commit.isNullOrBlank() && release.publishedCommit.equals(commit, ignoreCase = true)
 
     private fun compareVersions(left: String, right: String): Int {
         val a = left.split('.').map { it.toIntOrNull() ?: 0 }

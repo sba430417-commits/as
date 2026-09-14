@@ -1,5 +1,8 @@
 name: Build APK
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ main, master ]
@@ -35,3 +38,21 @@ jobs:
         with:
           name: app-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish latest APK for in-app updates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create latest \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Latest Android build" \
+            --notes "Automatically published build from commit $GITHUB_SHA" \
+            || true
+          gh release edit latest \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Latest Android build" \
+            --notes "Automatically published build from commit $GITHUB_SHA"
+          gh release upload latest app/build/outputs/apk/debug/app-debug.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
