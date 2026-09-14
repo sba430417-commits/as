@@ -3,7 +3,6 @@ package com.example.passvault.ui
 import android.content.Intent
 import android.os.Bundle
 import android.net.Uri
-import android.provider.Settings
 import android.content.ComponentName
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Toast
@@ -29,10 +28,6 @@ class MainActivity : AppCompatActivity() {
 
     private val exportPicker = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let { exportVault(it) }
-    }
-
-    private val importPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let { importVault(it) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,17 +66,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ImportCsvActivity::class.java))
         }
 
-        binding.btnEnableAutofill.setOnClickListener {
-            startActivity(Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE).apply {
-                data = Uri.parse("package:$packageName")
-            })
-        }
-
         binding.btnExportVault.setOnClickListener {
             exportPicker.launch("your-account-backup.json")
-        }
-        binding.btnImportVault.setOnClickListener {
-            importPicker.launch(arrayOf("application/json", "text/*"))
         }
     }
 

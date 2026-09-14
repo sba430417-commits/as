@@ -83,19 +83,29 @@ class AuthActivity : AppCompatActivity() {
     }
 
     private fun startAuthentication() {
-        val biometricAvailable = BiometricManager.from(this).canAuthenticate(
-            BiometricManager.Authenticators.BIOMETRIC_STRONG
-        ) == BiometricManager.BIOMETRIC_SUCCESS
-
-        if (biometricAvailable) authenticateWithBiometric() else authenticateWithDeviceCredential()
+        AlertDialog.Builder(this)
+            .setTitle("طريقة تسجيل الدخول")
+            .setItems(arrayOf("البصمة", "رمز PIN للجوال")) { _, which ->
+                if (which == 0) authenticateWithBiometric() else authenticateWithDeviceCredential()
+            }
+            .setNegativeButton("إلغاء", null)
+            .show()
     }
 
     private fun authenticateWithBiometric() {
+        val biometricAvailable = BiometricManager.from(this).canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG
+        ) == BiometricManager.BIOMETRIC_SUCCESS
+        if (!biometricAvailable) {
+            Toast.makeText(this, "البصمة غير مفعلة على هذا الجهاز", Toast.LENGTH_SHORT).show()
+            return
+        }
         val executor = ContextCompat.getMainExecutor(this)
         val prompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                // انتظر دورة واجهة قصيرة حتى تُغلق نافذة البصمة قبل فتح نافذة رمز الجهاز.
-                binding.root.postDelayed({ authenticateWithDeviceCredential() }, 300)
+                AuthSession.isUnlocked = true
+                startActivity(Intent(this@AuthActivity, MainActivity::class.java))
+                finish()
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {

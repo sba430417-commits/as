@@ -72,6 +72,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="أدخل رمز PIN"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"
                 android:inputType="numberPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -86,6 +88,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="أعد إدخال الرمز"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"
                 android:inputType="numberPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.PassVault" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.PassVault" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/primary</item>
@@ -9,6 +9,9 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="materialButtonStyle">@style/AppButton</item>
         <item name="textInputStyle">@style/AppTextInput</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:textColorPrimary">@color/text_main</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
     </style>
     <style name="AppButton" parent="Widget.MaterialComponents.Button">
         <item name="android:minHeight">52dp</item>
@@ -19,5 +22,7 @@
     <style name="AppTextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxStrokeColor">@color/primary</item>
         <item name="hintTextColor">@color/text_secondary</item>
+        <item name="boxBackgroundColor">@color/surface</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
     </style>
 </resources>
