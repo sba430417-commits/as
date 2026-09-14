@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -37,10 +38,7 @@ class AuthActivity : AppCompatActivity() {
                 return
             }
             UpdateManager.clearSavedDownload(context)
-            startActivity(Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "application/vnd.android.package-archive")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            })
+            openInstaller(uri)
         }
     }
 
@@ -53,6 +51,38 @@ class AuthActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), RECEIVER_NOT_EXPORTED)
         else registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
         checkForRequiredUpdate()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::binding.isInitialized) openCompletedDownloadIfReady()
+    }
+
+    private fun openCompletedDownloadIfReady() {
+        val id = UpdateManager.savedDownloadId(this)
+        if (id == -1L) return
+        val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val query = manager.query(DownloadManager.Query().setFilterById(id))
+        query.use { cursor ->
+            if (cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
+                manager.getUriForDownloadedFile(id)?.let {
+                    UpdateManager.clearSavedDownload(this)
+                    openInstaller(it)
+                }
+            }
+        }
+    }
+
+    private fun openInstaller(uri: Uri) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+            startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+            Toast.makeText(this, "فعّل السماح بالتثبيت، وسيظهر مثبت التحديث تلقائيًا بعد الرجوع", Toast.LENGTH_LONG).show()
+            return
+        }
+        startActivity(Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.android.package-archive")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
     }
 
     private fun checkForRequiredUpdate() {
@@ -89,8 +119,8 @@ class AuthActivity : AppCompatActivity() {
             .setCancelable(false)
             .setPositiveButton("تنزيل التحديث") { _, _ ->
                 UpdateManager.startDownload(this, release)
-                Toast.makeText(this, "بدأ تنزيل التحديث وسيظهر المثبت بعد اكتماله.", Toast.LENGTH_LONG).show()
-                showRequiredUpdate(release)
+                updateDialog?.dismiss()
+                Toast.makeText(this, "سيظهر مثبت Android تلقائيًا عند اكتمال التنزيل.", Toast.LENGTH_LONG).show()
             }.create()
         updateDialog?.show()
     }
