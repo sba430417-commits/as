@@ -37,6 +37,10 @@ android {
         buildConfig true
     }
 
+    // GitHub Actions يمرر GITHUB_SHA تلقائيًا أثناء بناء الـ APK.
+    buildTypes.each {
+        it.buildConfigField 'String', 'BUILD_COMMIT', '"' + (System.getenv('GITHUB_SHA') ?: 'local-build') + '"'
+    }
 }
 
 dependencies {
@@ -60,8 +64,4 @@ dependencies {
 
     // Security (encrypted shared preferences for PIN + master key)
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
-
-    // Google Play official in-app updates (Immediate)
-    implementation 'com.google.android.play:app-update:2.1.0'
-    implementation 'com.google.android.play:app-update-ktx:2.1.0'
 }
