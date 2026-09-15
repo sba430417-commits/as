@@ -48,6 +48,21 @@ class AddAccountActivity : AppCompatActivity() {
             return
         }
 
+        var invalidContact = false
+        if (email != null && !EMAIL_REGEX.matches(email)) {
+            binding.emailLayout.error = "اكتب بريدًا صحيحًا مثل name@gmail.com"
+            invalidContact = true
+        } else {
+            binding.emailLayout.error = null
+        }
+        if (phone != null && !PHONE_REGEX.matches(phone)) {
+            binding.phoneLayout.error = "اكتب رقم جوال صحيحًا من 7 إلى 15 رقمًا فقط"
+            invalidContact = true
+        } else {
+            binding.phoneLayout.error = null
+        }
+        if (invalidContact) return
+
         binding.emailLayout.error = null
         binding.phoneLayout.error = null
 
@@ -67,5 +82,10 @@ class AddAccountActivity : AppCompatActivity() {
             Toast.makeText(this@AddAccountActivity, "تم إنشاء الخانة", Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    companion object {
+        private val EMAIL_REGEX = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$")
+        private val PHONE_REGEX = Regex("^\\d{7,15}$")
     }
 }
