@@ -27,6 +27,9 @@ interface AccountDao {
     @Query("DELETE FROM accounts WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<Long>)
 
+    @Query("UPDATE accounts SET category = :category WHERE id IN (:ids)")
+    suspend fun moveToCategory(ids: List<Long>, category: String)
+
     @Query("SELECT * FROM accounts WHERE id = :id")
     suspend fun getById(id: Long): Account?
 }

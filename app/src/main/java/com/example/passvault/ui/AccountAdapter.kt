@@ -35,6 +35,10 @@ class AccountAdapter(
         holder.itemView.setOnLongClickListener { onLongClick(item); true }
     }
 
+    fun refreshSelection(vararg ids: Long) {
+        ids.forEach { id -> currentList.indexOfFirst { it.id == id }.takeIf { it >= 0 }?.let(::notifyItemChanged) }
+    }
+
     companion object {
         val DIFF = object : DiffUtil.ItemCallback<Account>() {
             override fun areItemsTheSame(a: Account, b: Account) = a.id == b.id

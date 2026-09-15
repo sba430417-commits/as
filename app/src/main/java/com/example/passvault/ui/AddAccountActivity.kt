@@ -74,7 +74,7 @@ class AddAccountActivity : AppCompatActivity() {
             email = email,
             phone = phone,
             source = "manual",
-            category = "عام"
+            category = intent.getStringExtra("category") ?: "عام"
         )
 
         lifecycleScope.launch {

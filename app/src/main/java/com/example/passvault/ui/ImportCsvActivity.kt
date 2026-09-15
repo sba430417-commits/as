@@ -78,7 +78,8 @@ class ImportCsvActivity : AppCompatActivity() {
                     encryptedPassword = password,
                     email = email,
                     phone = phone,
-                    source = "imported_csv"
+                    source = "imported_csv",
+                    category = intent.getStringExtra("category") ?: "عام"
                 ))
             }
         }
