@@ -27,6 +27,7 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAuthBinding
     private var deviceCredentialStarted = false
     private var updateDialog: AlertDialog? = null
+    private var downloadStarted = false
     private val downloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
@@ -94,9 +95,10 @@ class AuthActivity : AppCompatActivity() {
             val commitIsNew = UpdateManager.isCommitOutdated(latestCommit)
             val releaseIsNew = release != null && UpdateManager.isNewer(release)
             val needsUpdate = releaseIsNew || commitIsNew
-            if (needsUpdate) {
-                if (release != null && (releaseIsNew || UpdateManager.releaseContainsCommit(release, latestCommit))) showRequiredUpdate(release)
-                else showReleaseRequiredMessage()
+            if (needsUpdate && release != null && (releaseIsNew || UpdateManager.releaseContainsCommit(release, latestCommit)) && !downloadStarted) {
+                downloadStarted = true
+                binding.btnLogin.isEnabled = false
+                UpdateManager.startDownload(this@AuthActivity, release)
             }
         }
     }

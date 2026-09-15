@@ -6,7 +6,7 @@ object CategoryManager {
     private const val PREFS = "categories"
     private const val KEY = "names"
     private const val ALL = "الكل"
-    private const val DEFAULT = "عام"
+    private const val DEFAULT = "الرئيسي"
 
     fun get(context: Context): List<String> {
         val saved = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

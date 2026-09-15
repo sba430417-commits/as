@@ -79,7 +79,7 @@ class ImportCsvActivity : AppCompatActivity() {
                     email = email,
                     phone = phone,
                     source = "imported_csv",
-                    category = intent.getStringExtra("category") ?: "عام"
+                    category = intent.getStringExtra("category") ?: "الرئيسي"
                 ))
             }
         }
