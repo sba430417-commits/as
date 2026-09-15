@@ -12,7 +12,7 @@ android {
         applicationId "com.example.passvault"
         minSdk 26
         targetSdk 34
-        versionCode (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+        versionCode ((project.findProperty('versionCode') ?: '1').toString().toInteger())
         versionName "1.0"
     }
 
