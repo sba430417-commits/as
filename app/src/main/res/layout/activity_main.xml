@@ -6,7 +6,12 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="اختر قسمًا لعرض حساباتك أو أنشئ قسمًا جديدًا" android:textColor="@color/text_secondary" android:textSize="14sp" />
             <com.google.android.material.button.MaterialButton android:id="@+id/btnAddCategoryHome" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="18dp" android:text="+ إنشاء قسم" android:textSize="14sp" app:backgroundTint="@color/primary" android:textColor="@android:color/white" app:cornerRadius="14dp" />
         </LinearLayout>
-        <LinearLayout android:id="@+id/categoryList" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:padding="16dp" />
+        <LinearLayout android:id="@+id/categorySelectionHeader" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:paddingHorizontal="12dp" android:visibility="gone" android:background="@color/primary_light">
+            <TextView android:id="@+id/tvSelectedCategories" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/primary" android:textStyle="bold" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnSelectAllCategories" android:layout_width="wrap_content" android:layout_height="48dp" android:text="تحديد الكل" android:textColor="@color/primary" app:backgroundTint="@color/primary_light" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDeleteCategories" android:layout_width="wrap_content" android:layout_height="48dp" android:text="حذف" android:textColor="@android:color/holo_red_dark" app:backgroundTint="@color/primary_light" />
+        </LinearLayout>
+        <GridLayout android:id="@+id/categoryList" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:columnCount="2" android:alignmentMode="alignMargins" android:useDefaultMargins="true" android:padding="12dp" />
 
         <LinearLayout android:id="@+id/normalHeader" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:background="@color/surface" android:visibility="gone">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">

@@ -5,6 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.MotionEvent
+import android.os.Handler
+import android.os.Looper
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -34,6 +37,8 @@ class MainActivity : AppCompatActivity() {
     private val selectedIds = linkedSetOf<Long>()
     private var allAccounts: List<Account> = emptyList()
     private var currentCategory: String? = null
+    private var categorySelectionMode = false
+    private val selectedCategories = linkedSetOf<String>()
     private val exportPicker = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> uri?.let(::exportVault) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +55,12 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.layoutManager = LinearLayoutManager(this); binding.recyclerView.adapter = adapter
         AppDatabase.getInstance(this).accountDao().getAll().observe(this) { list -> allAccounts = list; selectedIds.retainAll(list.map { it.id }.toSet()); if (currentCategory == null) showCategoryHome() else renderAccounts(); updateSelectionUi() }
         binding.btnAddCategoryHome.setOnClickListener { showAddCategoryDialog() }
+        binding.btnSelectAllCategories.setOnClickListener {
+            val removable = CategoryManager.get(this).filter { it != "الكل" && it != "الرئيسي" }
+            if (selectedCategories.size == removable.size) selectedCategories.clear() else selectedCategories.addAll(removable)
+            updateCategorySelectionUi(); renderCategoryButtons()
+        }
+        binding.btnDeleteCategories.setOnClickListener { confirmDeleteCategories() }
         binding.btnBackCategories.setOnClickListener { showCategoryHome() }
         binding.fabAdd.setOnClickListener { openAddAccount() }
         binding.btnImportChrome.setOnClickListener { openImport() }
@@ -64,13 +75,42 @@ class MainActivity : AppCompatActivity() {
     private fun filteredAccounts() = if (currentCategory == "الرئيسي") allAccounts.filter(::isMainCategory) else allAccounts.filter { it.category == currentCategory }
 
     private fun showCategoryHome() {
-        currentCategory = null; selectionMode = false; selectedIds.clear(); binding.categoryHomeHeader.visibility = View.VISIBLE; binding.categoryList.visibility = View.VISIBLE; binding.normalHeader.visibility = View.GONE; binding.selectionHeader.visibility = View.GONE; binding.recyclerView.visibility = View.GONE; binding.emptyState.visibility = View.GONE; binding.fabAdd.visibility = View.GONE
+        currentCategory = null; selectionMode = false; selectedIds.clear(); categorySelectionMode = false; selectedCategories.clear()
+        binding.categoryHomeHeader.visibility = View.VISIBLE; binding.categorySelectionHeader.visibility = View.GONE; binding.categoryList.visibility = View.VISIBLE; binding.normalHeader.visibility = View.GONE; binding.selectionHeader.visibility = View.GONE; binding.recyclerView.visibility = View.GONE; binding.emptyState.visibility = View.GONE; binding.fabAdd.visibility = View.GONE
+        renderCategoryButtons()
+    }
+
+    private fun renderCategoryButtons() {
         binding.categoryList.removeAllViews()
         CategoryManager.get(this).filter { it != "الكل" }.forEach { category ->
             val count = if (category == "الرئيسي") allAccounts.count(::isMainCategory) else allAccounts.count { it.category == category }
-            val button = MaterialButton(this).apply { text = "$category   ($count)"; isAllCaps = false; gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL; minHeight = 58; setPadding(20, 0, 20, 0); setOnClickListener { openCategory(category) } }
-            binding.categoryList.addView(button, LinearLayout.LayoutParams(-1, 58).apply { bottomMargin = 10 })
+            val button = MaterialButton(this).apply {
+                text = "$category\n$count حساب"; isAllCaps = false; gravity = android.view.Gravity.CENTER; minHeight = 112
+                setOnClickListener { if (categorySelectionMode) toggleCategorySelection(category) else openCategory(category) }
+                if (category != "الرئيسي") {
+                    val handler = Handler(Looper.getMainLooper()); var triggered = false
+                    setOnTouchListener { _, event ->
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> { triggered = false; handler.postDelayed({ triggered = true; categorySelectionMode = true; toggleCategorySelection(category) }, 1000); false }
+                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { handler.removeCallbacksAndMessages(null); if (triggered) true else false }
+                            else -> false
+                        }
+                    }
+                }
+            }
+            if (selectedCategories.contains(category)) button.setStrokeColorResource(R.color.primary)
+            binding.categoryList.addView(button, android.widget.GridLayout.LayoutParams().apply { width = 0; height = 112; columnSpec = android.widget.GridLayout.spec(android.widget.GridLayout.UNDEFINED, 1f); setMargins(6, 6, 6, 6) })
         }
+        updateCategorySelectionUi()
+    }
+
+    private fun toggleCategorySelection(category: String) { if (category == "الرئيسي") return; if (!selectedCategories.add(category)) selectedCategories.remove(category); categorySelectionMode = selectedCategories.isNotEmpty(); updateCategorySelectionUi(); renderCategoryButtons() }
+    private fun updateCategorySelectionUi() { binding.categorySelectionHeader.visibility = if (categorySelectionMode) View.VISIBLE else View.GONE; binding.tvSelectedCategories.text = "تم تحديد ${selectedCategories.size}"; binding.btnSelectAllCategories.text = if (selectedCategories.isNotEmpty()) "إلغاء الكل" else "تحديد الكل" }
+    private fun confirmDeleteCategories() {
+        if (selectedCategories.isEmpty()) return
+        AlertDialog.Builder(this).setTitle("حذف الأقسام").setMessage("سيتم نقل الحسابات إلى القسم الرئيسي. هل تريد حذف ${selectedCategories.size} قسم؟").setNegativeButton("إلغاء", null).setPositiveButton("حذف") { _, _ ->
+            val deleted = selectedCategories.toList(); lifecycleScope.launch { AppDatabase.getInstance(this@MainActivity).accountDao().moveToCategory(allAccounts.filter { it.category in deleted }.map { it.id }, "الرئيسي"); deleted.forEach { CategoryManager.remove(this@MainActivity, it) }; selectedCategories.clear(); categorySelectionMode = false; showCategoryHome(); Toast.makeText(this@MainActivity, "تم حذف الأقسام ونقل حساباتها للرئيسي", Toast.LENGTH_SHORT).show() }
+        }.show()
     }
 
     private fun openCategory(category: String) { currentCategory = category; binding.categoryHomeHeader.visibility = View.GONE; binding.categoryList.visibility = View.GONE; binding.normalHeader.visibility = View.VISIBLE; binding.tvCurrentCategory.text = category; binding.recyclerView.visibility = View.VISIBLE; binding.fabAdd.visibility = View.VISIBLE; renderAccounts() }

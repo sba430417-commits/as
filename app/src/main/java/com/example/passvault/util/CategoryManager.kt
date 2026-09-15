@@ -23,4 +23,13 @@ object CategoryManager {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY, names).apply()
         return true
     }
+
+    fun remove(context: Context, name: String): Boolean {
+        if (name == DEFAULT || name == ALL) return false
+        val names = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getStringSet(KEY, emptySet()).orEmpty().toMutableSet()
+        if (!names.remove(name)) return false
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY, names).apply()
+        return true
+    }
 }
